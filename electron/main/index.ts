@@ -53,6 +53,7 @@ async function createWindow() {
       nodeIntegration: true,
       contextIsolation: false,
     },
+    frame: false,
   })
 
   if (url) { // electron-vite-vue#298
@@ -72,6 +73,14 @@ async function createWindow() {
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith('https:')) shell.openExternal(url)
     return { action: 'deny' }
+  })
+
+  win.on("unmaximize", () => {
+    win?.webContents.send('isRestored')
+  })
+
+  win.on("maximize", () => {
+    win?.webContents.send('isMaximised')
   })
 
   // Apply electron-updater
@@ -119,3 +128,21 @@ ipcMain.handle('open-win', (_, arg) => {
   }
 })
 
+
+// Custom listeners
+
+ipcMain.on('close', () => {
+  app.quit()
+})
+
+ipcMain.on('max', () => {
+  win?.maximize()
+})
+
+ipcMain.on('restore', () => {
+  win?.unmaximize()
+})
+
+ipcMain.on('min', () => {
+  win?.minimize()
+})
